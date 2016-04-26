@@ -17,8 +17,15 @@ App::MultiModule::Tasks::Runner - Run external programs under App::MultiModule
 
 {
 my $ps_cache;
+my $cache_ts;
 sub _is_running {
     my $regex = shift or die 'is_running: regex required';
+    $cache_ts = 0 unless defined $cache_ts;
+    my $time = time;
+    if($time - 5 > $cache_ts) {
+        $cache_ts = $time;
+        undef $ps_cache;
+    }
     if(not $ps_cache) {
         $ps_cache = `ps -eo cmd`;
     }

@@ -48,8 +48,7 @@ sub message {
     $state->{running_progs} = {} unless $state->{running_progs};
     my $prog = $message->{runner_program_prog}
         or die 'run_program: runner_program_prog required';
-    my $prog_args = $message->{runner_program_args}
-        or die 'run_program: runner_program_args required';
+    my $prog_args = $message->{runner_program_args} || [];
     die 'run_program: runner_program_args must be an ARRAY reference'
         if not ref $prog_args or ref $prog_args ne 'ARRAY';
     my $prog_run_key = "$prog," . join ',',@$prog_args;

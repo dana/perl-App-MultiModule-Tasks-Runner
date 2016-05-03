@@ -48,9 +48,20 @@ sub message {
     $state->{running_progs} = {} unless $state->{running_progs};
     my $prog = $message->{runner_program_prog}
         or die 'run_program: runner_program_prog required';
-    my $prog_args = $message->{runner_program_args} || [];
-    die 'run_program: runner_program_args must be an ARRAY reference'
-        if not ref $prog_args or ref $prog_args ne 'ARRAY';
+    my $prog_args = Storable::dclone($message->{runner_program_args});
+    $prog_args = [] unless $prog_args;
+    die 'run_program: runner_program_args must be an ARRAY or HASH reference'
+        if      not ref $prog_args or
+                (   ref $prog_args ne 'ARRAY' and
+                    ref $prog_args ne 'HASH');
+    if(ref $prog_args eq 'HASH') {
+        my @args = ();
+        my @sorted_arg_numbers = sort { $a <=> $b } keys %$prog_args;
+        foreach my $arg_number (@sorted_arg_numbers) {
+            push @args, $prog_args->{$arg_number};
+        }
+        $prog_args = \@args;
+    }
     my $prog_run_key = "$prog," . join ',',@$prog_args;
     my $prog_regex = $message->{runner_process_regex}
         or die 'run_program: runner_process_regex required';

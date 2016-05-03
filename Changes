@@ -1,4 +1,6 @@
 {{$NEXT}}
+    - Added HASH program args, which makes it easy to Message::Transform
+      dynamic arguments into programs.
 
 1.161190  2016-04-27 18:36:41-07:00 America/Los_Angeles
     - Added default handling when passing in no arguments attribute

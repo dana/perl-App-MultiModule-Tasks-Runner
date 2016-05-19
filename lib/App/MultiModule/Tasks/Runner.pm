@@ -6,6 +6,7 @@ use warnings FATAL => 'all';
 use Data::Dumper;
 use Storable;
 use POE qw( Wheel::Run );
+use JSON;
 
 use parent 'App::MultiModule::Task';
 
@@ -39,8 +40,6 @@ sub _is_running {
 sub message {
     my $self = shift;
     my $message = shift;
-#    print STDERR 'MESSAGE: ' . Data::Dumper::Dumper $message;
-#    print STDERR "MESSSAGE\n";
     my %args = @_;
     $self->debug('message', message => $message)
         if $self->{debug} > 5;
@@ -84,12 +83,12 @@ sub message {
     my $on_start = sub {
         my $child = POE::Wheel::Run->new(
             Program => [ $prog, @$prog_args],
-            StdoutEvent  => "got_child_stdout",
-            StderrEvent  => "got_child_stderr",
-            CloseEvent   => "got_child_close",
+            StdoutEvent  => 'got_child_stdout',
+            StderrEvent  => 'got_child_stderr',
+            CloseEvent   => 'got_child_close',
         );
 
-        $_[KERNEL]->sig_child($child->PID, "got_child_signal");
+        $_[KERNEL]->sig_child($child->PID, 'got_child_signal');
         $_[HEAP]{children_by_wid}{$child->ID} = $child;
         $_[HEAP]{children_by_pid}{$child->PID} = $child;
         $message->{runner_start_time} = time;
@@ -107,8 +106,16 @@ sub message {
         my $child = $_[HEAP]{children_by_wid}{$wheel_id};
         if($return_type eq 'gather') {  #simply gather all of
             $message->{runner_stdout} .= "$stdout_line\n";
+        } elsif($return_type eq 'json') {
+            $message->{runner_stdout} .= "$stdout_line\n";
+            my $emit = eval {
+                return decode_json $message->{runner_stdout};
+            };
+            if($emit) {
+                $message->{runner_stdout} = '';
+                $self->emit($emit);
+            }
         }
-        print "pid ", $child->PID, " name '$prog_args->[0]' STDOUT: $stdout_line\n";
     };
 
     # Wheel event, including the wheel's ID.
@@ -118,7 +125,6 @@ sub message {
         if($return_type eq 'gather') {  #simply gather all of
             $message->{runner_stderr} .= "$stderr_line\n";
         }
-        print "pid ", $child->PID, " name '$prog_args->[0]' STDERR: $stderr_line\n";
     };
 
     # Wheel event, including the wheel's ID.

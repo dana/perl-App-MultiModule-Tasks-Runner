@@ -73,74 +73,74 @@ sub message_is {
 }
 
 IPC::Transit::send(qname => 'Runner', message => {
-    runner_program_prog => './test_program.pl',
+    runner_program_prog => './test-program.pl',
     runner_program_args => ['one'],
-    runner_process_regex => 'perl ./test_program.pl one',
+    runner_process_regex => 'perl ./test-program.pl one',
 });
 sleep 1;
 IPC::Transit::send(qname => 'Runner', message => {
-    runner_program_prog => './test_program.pl',
+    runner_program_prog => './test-program.pl',
     runner_program_args => ['two'],
-    runner_process_regex => 'perl ./test_program.pl two',
+    runner_process_regex => 'perl ./test-program.pl two',
 });
 sleep 1;
 IPC::Transit::send(qname => 'Runner', message => {
-    runner_program_prog => './test_program.pl',
+    runner_program_prog => './test-program.pl',
     runner_program_args => ['two'],
-    runner_process_regex => 'perl ./test_program.pl two',
+    runner_process_regex => 'perl ./test-program.pl two',
 });
 message_is(
-    'start for test_program.pl one',
+    'start for test-program.pl one',
     {
         runner_stderr => '',
-        runner_program_prog => './test_program.pl',
-        runner_prog_run_key => './test_program.pl,one',
+        runner_program_prog => './test-program.pl',
+        runner_prog_run_key => './test-program.pl,one',
         runner_program_args => [
             'one'
         ],
         runner_stdout => '',
         runner_return_type => 'gather',
-        runner_process_regex => 'perl ./test_program.pl one',
+        runner_process_regex => 'perl ./test-program.pl one',
         runner_message_type => 'start',
         source => 'Runner',
     },
     ['runner_start_time','runner_pid','.ipc_transit_meta']
 );
 message_is(
-    'start for test_program.pl two',
+    'start for test-program.pl two',
     {
-        runner_prog_run_key => './test_program.pl,two',
+        runner_prog_run_key => './test-program.pl,two',
         runner_program_args => [
             'two'
         ],
         runner_stdout => '',
         runner_return_type => 'gather',
-        runner_process_regex => 'perl ./test_program.pl two',
+        runner_process_regex => 'perl ./test-program.pl two',
         runner_stderr => '',
-        runner_program_prog => './test_program.pl',
+        runner_program_prog => './test-program.pl',
         runner_message_type => 'start',
         source => 'Runner',
     },
     ['runner_start_time','runner_pid','.ipc_transit_meta']
 );
 message_is(
-    'already running test_program.pl two',
+    'already running test-program.pl two',
     {
         'runner_program_args' => [
             'two'
         ],
         runner_message_type => 'already running',
         runner_return_type => 'gather',
-        runner_process_regex => 'perl ./test_program.pl two',
+        runner_process_regex => 'perl ./test-program.pl two',
         runner_stdout => '',
         runner_stderr => '',
         source => 'Runner',
-        runner_program_prog => './test_program.pl'
+        runner_program_prog => './test-program.pl'
     },
     ['runner_start_time','runner_pid','.ipc_transit_meta']
 );
 message_is(
-    'finish test_program.pl one',
+    'finish test-program.pl one',
     {
         runner_stdout => 'one : ct = 1 : sleep = 1 : delta = 0
 one : ct = 2 : sleep = 2 : delta = 1
@@ -150,11 +150,11 @@ one : ct = 5 : sleep = 5 : delta = 10
 ',
         runner_return_type => 'gather',
         runner_exit_code => 0,
-        runner_process_regex => 'perl ./test_program.pl one',
+        runner_process_regex => 'perl ./test-program.pl one',
         runner_stderr => '',
-        runner_prog_run_key => './test_program.pl,one',
+        runner_prog_run_key => './test-program.pl,one',
         runner_message_type => 'finish',
-        runner_program_prog => './test_program.pl',
+        runner_program_prog => './test-program.pl',
         source => 'Runner',
         runner_program_args => [
             'one'
@@ -163,13 +163,13 @@ one : ct = 5 : sleep = 5 : delta = 10
     ['runner_start_time','runner_pid','runner_run_time','.ipc_transit_meta']
 );
 message_is(
-    'finish test_program.pl two',
+    'finish test-program.pl two',
     {
-        runner_program_prog => './test_program.pl',
+        runner_program_prog => './test-program.pl',
         runner_program_args => [
             'two'
         ],
-        runner_prog_run_key => './test_program.pl,two',
+        runner_prog_run_key => './test-program.pl,two',
         runner_message_type => 'finish',
         runner_return_type => 'gather',
         runner_exit_code => 0,
@@ -180,7 +180,7 @@ two : ct = 4 : sleep = 4 : delta = 6
 two : ct = 5 : sleep = 5 : delta = 10
 ',
         runner_stderr => '',
-        runner_process_regex => 'perl ./test_program.pl two',
+        runner_process_regex => 'perl ./test-program.pl two',
         source => 'Runner',
     },
     ['runner_start_time','runner_pid','runner_run_time','.ipc_transit_meta']

@@ -39,7 +39,16 @@ my $config = {
             Router => {  #router config
                 routes => [
                     {   match => {
-                            source => 'Runner'
+                            source => 'Runner',
+                            json => 'thing1'
+                        },
+                        forwards => [
+                            {   qname => 'test_out' }
+                        ],
+                    },
+                    {   match => {
+                            source => 'Runner',
+                            json => 'thing2'
                         },
                         forwards => [
                             {   qname => 'test_out' }
@@ -53,20 +62,32 @@ my $config = {
 ok IPC::Transit::send(qname => 'tqueue', message => $config), 'sent config';
 
 IPC::Transit::send(qname => 'Runner', message => {
-    runner_program_prog => './sub-program-test-program.pl',
+    runner_program_prog => './emit-multi-json.sh',
     runner_program_args => [],
-    runner_process_regex => 'perl ./sub-program-test-program.pl',
+    runner_process_regex => './emit-multi-json.sh',
+    runner_return_type => 'json',
 });
 
 
-ok my $ret = IPC::Transit::receive(qname => 'test_out');
-is $ret->{runner_message_type}, 'start', 'first message correctly has runner_message_type "start"';
-ok $ret = IPC::Transit::receive(qname => 'test_out');
-is $ret->{runner_message_type}, 'finish', 'second message correctly has runner_message_type "finish"';
+eval {
+    local $SIG{ALRM} = sub { die "timed out\n"; };
+    alarm 5;
+    ok my $ret = IPC::Transit::receive(qname => 'test_out');
+    is $ret->{runner_message_type}, undef, 'first message correctly has no defined runner_message_type';
+    is $ret->{json}, 'thing1', 'first message correctly had "json" set to "thing1"';
+};
+alarm 0;
+ok !$@, 'no exception thrown for first message';
 
-ok $ret->{runner_stdout}, 'correctly received stdout';
-ok !$ret->{runner_stderr}, 'correctly did not receive stderr';
-
+eval {
+    local $SIG{ALRM} = sub { die "timed out\n"; };
+    alarm 5;
+    ok my $ret = IPC::Transit::receive(qname => 'test_out');
+    is $ret->{runner_message_type}, undef, 'second message correctly has no defined runner_message_type';
+    is $ret->{json}, 'thing2', 'second message correctly had "json" set to "thing2"';
+};
+alarm 0;
+ok !$@, 'no exception thrown for second message';
 
 ok IPC::Transit::send(qname => 'tqueue', message => {
     '.multimodule' => {

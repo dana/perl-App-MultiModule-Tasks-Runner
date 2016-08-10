@@ -1,5 +1,5 @@
 package App::MultiModule::Tasks::Runner;
-
+$App::MultiModule::Tasks::Runner::VERSION = '1.161390';
 use 5.006;
 use strict;
 use warnings FATAL => 'all';
@@ -144,13 +144,17 @@ sub message {
     my $on_child_signal = sub {
         my $child = delete $_[HEAP]{children_by_pid}{$_[ARG1]};
         $message->{runner_message_type} = 'finish';
-        $message->{runner_exit_code} = $_[ARG2];
+        $message->{runner_exit_code} = $_[ARG2] >> 8;
         $message->{runner_run_time} = time - $message->{runner_start_time};
 
         if($return_type eq 'gather') {
             #noop, because we've already gathered the STDOUT/ERR
         } elsif($return_type eq 'json') {
             #noop, because we've already sent any and all messages
+        }
+        if($message->{runner_stderr_to_stdout}) {
+            $message->{runner_stdout} .= $message->{runner_stderr};
+            $message->{runner_stderr} = '';
         }
         $self->emit($message);
         # May have been reaped by on_child_close().
